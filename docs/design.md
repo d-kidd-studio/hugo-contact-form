@@ -1,49 +1,39 @@
 # Design notes
 
-## Key design decision: separate shared behavior from site-specific content
+## Version 1: faithful Roberts Apartments extraction
 
-The Roberts Apartments implementation currently combines a general Mailjet delivery pipeline with apartment-specific form fields (role, apartment size, school year, lease length, and move-in month). The new integration should not hardcode those fields or their email formatting into the shared handler.
+The first milestone is intentionally narrow: extract the current Roberts Apartments contact form and Cloudflare Pages Function into this repository without changing behavior.
 
-The shared handler should accept a bounded set of submitted form fields, validate them against server-side configuration, and construct the Mailjet message using trusted server-side sender and recipient settings.
+The acceptance criteria are:
 
-## Distribution approach
+- The form markup and conditional student-field behavior match the existing theme template.
+- The endpoint remains `POST /api/contact`.
+- Turnstile verification and Mailjet delivery work the same way as the current implementation.
+- The email subject, body, sender/recipient display names, and Reply-To behavior remain unchanged.
+- Successful submissions redirect to `/thank-you`.
+- Failed Mailjet submissions redirect to `/contact?error=1`.
+- The consuming Roberts Apartments site only needs the two extracted files replaced; its content, theme styling, Cloudflare environment variables, Turnstile site key, and thank-you page remain in place.
 
-The project should initially be structured as a reusable integration repository, not immediately as a hosted form service.
+The files in this repository's `functions/api/contact.js` and `themes/apartments/layouts/_default/contact.html` are currently byte-for-byte content matches of the corresponding files in `d-kidd-studio/robertsapt` main.
 
-A Hugo Module is a natural fit for Hugo partials, layouts, assets, and configuration examples. However, Cloudflare Pages Functions are discovered from the consuming site's root `functions/` directory. We need a deliberate installation strategy for that part, such as a versioned package/install script or a documented copy step. Avoid a design that appears reusable in Hugo but silently omits the API endpoint from the Cloudflare deployment.
+## Version 1 is not a redesign
 
-Recommendation for the first release:
+Do not introduce a generalized form schema, new response format, new field names, or a different email template as part of the initial extraction. That would make it harder to distinguish extraction regressions from behavior changes.
 
-- Keep the canonical implementation in this repository.
-- Provide Hugo Module-compatible templates/assets where practical.
-- Provide a versioned installer or documented copy/integration step for `functions/api/contact.js`.
-- Keep site configuration in the consuming site repository.
-- Pin consumers to a release/tag rather than tracking a moving branch.
+The current implementation has limitations, including minimal server-side field validation, placeholder fallback configuration, and limited Mailjet error handling. Record and address those as deliberate follow-up changes after the drop-in replacement has been tested. Preserve the current behavior for the extraction milestone rather than silently mixing those changes into it.
 
-We can revisit an npm package or Hugo module wrapper once the first two sites prove the interface.
+## Later milestone: make the integration reusable
 
-## Form configuration
+After the Roberts Apartments replacement is verified, we can evolve the code to support other Hugo sites. Likely areas include:
 
-The initial configuration should support:
+- Site-specific fields and email formatting supplied through configuration.
+- Explicit required configuration rather than placeholder fallbacks.
+- Stronger server-side validation and safer provider error handling.
+- Optional success/error destinations.
+- A clear installation/update mechanism for multiple Hugo + Cloudflare Pages sites.
 
-- Form endpoint (default `/api/contact`)
-- Public Turnstile site key
-- Site-specific heading, labels, and fields
-- Required/optional fields and basic field types
-- Optional success URL and error handling
-- Site-specific recipient and sender settings stored as Cloudflare environment variables
+## Distribution consideration
 
-Do not build a large general-purpose form builder. The target is a dependable contact/inquiry form with a small, explicit configuration surface.
+Cloudflare Pages discovers Functions from the consuming site's root `functions/` directory. A Hugo Module can distribute Hugo templates and assets, but should not be assumed to deploy the Pages Function automatically. Any future module/package approach must explicitly install or synchronize `functions/api/contact.js` into the consuming site's root.
 
-## Response behavior
-
-The Roberts Apartments implementation uses browser form POST followed by a 303 redirect. Preserve that as an optional progressive-enhancement-friendly mode, but design the handler so a future fetch-based form can receive structured JSON responses. The default should be chosen during implementation based on both pilot sites.
-
-## Security decisions to retain
-
-- Recipient and sender are server configuration only.
-- Turnstile verification happens on the server.
-- Email syntax and field constraints are checked on the server.
-- Use the validated visitor email as Reply-To only.
-- Add honeypot support.
-- Rate limiting needs an explicit Cloudflare-compatible design; a honeypot alone is not rate limiting.
+For the first milestone, a documented two-file copy is sufficient and keeps the integration easy to verify.
