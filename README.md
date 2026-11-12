@@ -1,72 +1,46 @@
 # Hugo Contact Form
 
-A reusable contact-form integration for Hugo websites deployed to Cloudflare Pages.
+An extraction of the contact form integration currently used by Roberts Apartments.
 
-The project provides a configurable Hugo form interface and a Cloudflare Pages Function that validates submissions and sends notification email through Mailjet. Cloudflare Turnstile is the default bot-protection integration.
+## Version 1 scope
 
-## Goals
+Version 1 is intentionally a **drop-in replacement for Roberts Apartments**, not a generalized form framework. The first goal is to move the current implementation into this repository without changing its behavior. Once that extraction is tested, we can make it configurable and reusable for other Hugo sites.
 
-- Reuse one maintained implementation across multiple Hugo sites.
-- Keep site-specific form fields, labels, recipient addresses, and branding configurable.
-- Keep Mailjet credentials and the Turnstile secret server-side in Cloudflare environment variables.
-- Keep the form visually native to each site's Hugo theme.
-- Support ordinary contact forms as well as specialized inquiry forms.
-- Avoid requiring a hosted form-builder service.
+## Included files
 
-## Initial reference implementation
-
-The first reference integration is in [d-kidd-studio/robertsapt](https://github.com/d-kidd-studio/robertsapt):
-
-- `functions/api/contact.js` — Cloudflare Pages Function and Mailjet request.
-- `themes/apartments/layouts/_default/contact.html` — apartment-specific Hugo form.
-
-That implementation is a reference, not a drop-in reusable component. It currently mixes apartment-specific fields and email content into the generic submission handler. The new implementation will separate the shared submission pipeline from each site's form definition.
-
-## Proposed architecture
-
-1. **Hugo form component** — reusable partial/template and small client-side script. Each site supplies its own fields and presentation.
-2. **Cloudflare Pages Function** — shared endpoint for request parsing, server-side validation, Turnstile verification, and Mailjet delivery.
-3. **Site configuration** — recipient, verified sender identity, subject, redirect/response behavior, and allowed form fields.
-4. **Deployment integration** — a documented way to put the Pages Function into the consuming site's root `functions/api` directory.
-
-Cloudflare Pages requires Functions to be present in the deployed site's `functions` directory. The distribution mechanism must account for that. A Hugo Module alone can mount Hugo templates and assets, but should not be assumed to deploy the Pages Function automatically.
-
-## Initial environment variables
-
-| Variable | Purpose |
+| This repository | Roberts Apartments destination |
 |---|---|
-| `MAILJET_API_KEY` | Mailjet API key (Cloudflare secret) |
-| `MAILJET_API_SECRET` | Mailjet API secret (Cloudflare secret) |
-| `MAILJET_FROM_EMAIL` | Verified sender address |
-| `MAILJET_FROM_NAME` | Sender display name |
-| `CONTACT_TO_EMAIL` | Destination for submissions |
-| `TURNSTILE_SECRET_KEY` | Turnstile secret (Cloudflare secret) |
+| `functions/api/contact.js` | `functions/api/contact.js` |
+| `themes/apartments/layouts/_default/contact.html` | `themes/apartments/layouts/_default/contact.html` |
 
-The Turnstile site key is public and belongs in site configuration / rendered markup, not in a secret.
+The consuming site continues to own its contact page content, theme styling, contact information, Turnstile site key, thank-you page, and thank-you layout.
 
-No placeholder recipient or sender addresses should be used as production fallbacks. Missing configuration should produce a safe server error and a useful server-side log.
+## Behavior to preserve
 
-## Security and reliability requirements
+- POST submissions to `/api/contact`
+- Cloudflare Turnstile verification
+- Mailjet v3.1 email delivery
+- Existing apartment inquiry fields and conditional student fields
+- Existing email subject, content, sender/recipient names, and Reply-To behavior
+- Redirect to `/thank-you` on success
+- Redirect to `/contact?error=1` on delivery failure
 
-- Validate request method, content type, size, field lengths, and email address server-side.
-- Verify Turnstile server-side; fail closed if protection is configured as required but verification is unavailable or unsuccessful.
-- Support a honeypot field and sensible rate limiting / abuse controls.
-- Never accept arbitrary recipient or sender addresses from the browser.
-- Use the visitor's validated email only as `ReplyTo`, never as the Mailjet sender.
-- Escape or safely format submitted content in email output.
-- Do not log secrets, full message bodies, or unnecessary personal information.
-- Return predictable success and error responses; don't expose Mailjet credentials or raw provider errors.
-- Keep Mailjet credentials in Cloudflare secrets.
+## Cloudflare Pages environment variables
 
-## Development sequence
+Configure these in the Roberts Apartments Cloudflare Pages project:
 
-1. Document the existing Roberts Apartments behavior and identify what should become generic.
-2. Define a small configuration contract for site-specific fields and email metadata.
-3. Implement and test the generic Pages Function.
-4. Implement the Hugo form partial and client-side behavior.
-5. Document installation and Cloudflare configuration.
-6. Pilot the integration in PropertySuiteHQ, then migrate Roberts Apartments after the pilot is stable.
+- `MAILJET_API_KEY`
+- `MAILJET_API_SECRET`
+- `CONTACT_TO_EMAIL`
+- `CONTACT_FROM_EMAIL`
+- `TURNSTILE_SECRET_KEY`
 
-## Status
+The Hugo site must continue to provide `.Site.Params.turnstileSiteKey` as the public Turnstile site key.
 
-Initial repository scaffold. No production-ready handler or release has been published yet.
+## Installation
+
+Copy the two files above into the corresponding paths in the Roberts Apartments repository, replacing the existing versions. No other page or theme files are intended to change in this first extraction.
+
+## Follow-up work
+
+This first version deliberately preserves the existing implementation for a direct behavior comparison. Before adopting it on additional sites, we can separately improve configuration, validation, error handling, and the way site-specific fields and email content are defined. Those changes should be introduced after the drop-in extraction has been verified.
