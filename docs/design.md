@@ -6,15 +6,15 @@ The first milestone is intentionally narrow: extract the current Roberts Apartme
 
 The acceptance criteria are:
 
-- The form markup and conditional student-field behavior match the existing theme template.
+- The form markup and conditional student-field behavior match the existing theme template. The extracted template is installed at the consuming site's root `layouts/_default/contact.html`, so it overrides the theme's version without modifying the theme directory.
 - The endpoint remains `POST /api/contact`.
 - Turnstile verification and Mailjet delivery work the same way as the current implementation.
 - The email subject, body, sender/recipient display names, and Reply-To behavior remain unchanged.
 - Successful submissions redirect to `/thank-you`.
 - Failed Mailjet submissions redirect to `/contact?error=1`.
-- The consuming Roberts Apartments site only needs the two extracted files replaced; its content, theme styling, Cloudflare environment variables, Turnstile site key, and thank-you page remain in place.
+- The consuming Roberts Apartments site only needs the two extracted files copied into its root `functions/` and `layouts/` directories; its content, theme styling, Cloudflare environment variables, Turnstile site key, and thank-you page remain in place.
 
-The files in this repository's `functions/api/contact.js` and `themes/apartments/layouts/_default/contact.html` are currently byte-for-byte content matches of the corresponding files in `d-kidd-studio/robertsapt` main.
+The files in this repository's `functions/api/contact.js` and `layouts/_default/contact.html` are currently byte-for-byte content matches of the corresponding files in `d-kidd-studio/robertsapt` main.
 
 ## Version 1 is not a redesign
 
@@ -34,6 +34,6 @@ After the Roberts Apartments replacement is verified, we can evolve the code to 
 
 ## Distribution consideration
 
-Cloudflare Pages discovers Functions from the consuming site's root `functions/` directory. A Hugo Module can distribute Hugo templates and assets, but should not be assumed to deploy the Pages Function automatically. Any future module/package approach must explicitly install or synchronize `functions/api/contact.js` into the consuming site's root.
+Cloudflare Pages discovers Functions from the consuming site's root `functions/` directory. A Hugo Module can distribute Hugo templates and assets, but should not be assumed to deploy the Pages Function automatically. A root-level layout in the consuming site takes precedence over a theme-provided layout. Any future module/package approach must explicitly install or synchronize `functions/api/contact.js` into the consuming site's root.
 
-For the first milestone, a documented two-file copy is sufficient and keeps the integration easy to verify.
+For the first milestone, a documented two-file copy into the consuming site's root directories is sufficient and keeps the integration easy to verify.

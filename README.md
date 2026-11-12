@@ -11,7 +11,7 @@ Version 1 is intentionally a **drop-in replacement for Roberts Apartments**, not
 | This repository | Roberts Apartments destination |
 |---|---|
 | `functions/api/contact.js` | `functions/api/contact.js` |
-| `themes/apartments/layouts/_default/contact.html` | `themes/apartments/layouts/_default/contact.html` |
+| `layouts/_default/contact.html` | `layouts/_default/contact.html` |
 
 The consuming site continues to own its contact page content, theme styling, contact information, Turnstile site key, thank-you page, and thank-you layout.
 
@@ -39,7 +39,7 @@ The Hugo site must continue to provide `.Site.Params.turnstileSiteKey` as the pu
 
 ## Installation
 
-Copy the two files above into the corresponding paths in the Roberts Apartments repository, replacing the existing versions. No other page or theme files are intended to change in this first extraction.
+Copy the two files above into the corresponding paths in the Roberts Apartments repository, replacing the existing versions. The contact template belongs in the site's root `layouts/_default/` directory, where it overrides the theme-provided layout; it should not be installed inside `themes/apartments/`. No other page or theme files are intended to change in this first extraction.
 
 ## Follow-up work
 
