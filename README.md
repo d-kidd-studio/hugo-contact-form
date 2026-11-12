@@ -39,7 +39,7 @@ The Hugo site must continue to provide `.Site.Params.turnstileSiteKey` as the pu
 
 ## Installation
 
-Copy the two files above into the corresponding paths in the Roberts Apartments repository, replacing the existing versions. The contact template belongs in the site's root `layouts/_default/` directory, where it overrides the theme-provided layout; it should not be installed inside `themes/apartments/. No other page or theme files are intended to change in this first extraction.
+Copy the two files above into the corresponding paths in the Roberts Apartments repository, replacing the existing versions. The contact template belongs in the site's root `layouts/_default/` directory, where it overrides the theme-provided layout; it should not be installed inside `themes/apartments/`. No other page or theme files are intended to change in this first extraction.
 
 ## Follow-up work
 
