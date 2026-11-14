@@ -1,10 +1,24 @@
 {
-    "name": "@d-kidd-studio/hugo-contact-form",
+    "name": "hugo-contact-form",
     "version": "0.2.0",
+    "description": "An extraction of the contact form integration currently used by Roberts Apartments.",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com-dkiddstudio:d-kidd-studio/hugo-contact-form.git"
+    },
+    "license": "ISC",
+    "author": "",
     "type": "module",
     "exports": {
         "./contact": "./src/contact.js",
         "./verifiers/turnstile": "./src/verifiers/turnstile.js",
         "./providers/mailjet": "./src/providers/mailjet.js"
+    },
+    "main": "index.js",
+    "directories": {
+        "doc": "docs"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
     }
 }
