@@ -1,0 +1,10 @@
+{
+    "name": "@d-kidd-studio/hugo-contact-form",
+    "version": "0.2.0",
+    "type": "module",
+    "exports": {
+        "./contact": "./src/contact.js",
+        "./verifiers/turnstile": "./src/verifiers/turnstile.js",
+        "./providers/mailjet": "./src/providers/mailjet.js"
+    }
+}
