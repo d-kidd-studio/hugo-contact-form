@@ -1,6 +1,6 @@
 {
     "name": "@d-kidd-studio/hugo-contact-form",
-    "version": "0.2.1",
+    "version": "0.2.3",
     "description": "An extraction of the contact form integration currently used by Roberts Apartments.",
     "type": "module",
     "exports": {

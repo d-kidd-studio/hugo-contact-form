@@ -1,58 +1,30 @@
-export function createContactHandler({
-  buildMessage,
-  sendMail,
-  verify,
-  successPath = "/thank-you",
-  errorPath = "/contact?error=1",
-} = {}) {
-  for (const [name, fn] of Object.entries({ buildMessage, sendMail, verify })) {
-    if (typeof fn !== "function") {
-      throw new Error(`createContactHandler requires a ${name} function`);
-    }
-  }
-
-  return async function onRequestPost({ request, env }) {
-    const url = new URL(request.url);
-    const fail = () => Response.redirect(`${url.origin}${errorPath}`, 303);
-    const formData = await request.formData();
-
-    // 1. Validation
-    const check = await verify(formData, { request, env });
-    if (!check.ok) {
-      return new Response(check.message, { status: check.status ?? 400 });
-    }
-
-    // 2. Content (site)
-    let msg;
-    try {
-      msg = await buildMessage(formData, { request, env });
-    } catch (err) {
-      console.error("buildMessage failed:", err);
-      return fail();
-    }
-
-    // 3. Delivery (provider)
-    const result = await sendMail(
+export async function sendMail(msg, env) {
+  const payload = {
+    Messages: [
       {
-        from: {
-          email: env.CONTACT_FROM_EMAIL,
-          name: msg.fromName ?? "Website",
-        },
-        to: {
-          email: env.CONTACT_TO_EMAIL,
-          name: msg.toName ?? "Website Contact",
-        },
-        subject: msg.subject,
-        text: msg.text,
-        html: msg.html,
-        replyTo: msg.replyTo,
+        From: { Email: msg.from.email, Name: msg.from.name },
+        To: [{ Email: msg.to.email, Name: msg.to.name }],
+        Subject: msg.subject,
+        TextPart: msg.text,
+        ...(msg.html && { HTMLPart: msg.html }),
+        ...(msg.replyTo && {
+          ReplyTo: { Email: msg.replyTo.email, Name: msg.replyTo.name },
+        }),
       },
-      env,
-    );
-
-    if (result.ok) return Response.redirect(`${url.origin}${successPath}`, 303);
-
-    console.error("Email provider rejected submission:", result);
-    return fail();
+    ],
   };
+
+  const resp = await fetch("https://api.mailjet.com/v3.1/send", {
+    method: "POST",
+    headers: {
+      Authorization:
+        "Basic " + btoa(`${env.MAILJET_API_KEY}:${env.MAILJET_API_SECRET}`),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (resp.ok) return { ok: true };
+
+  return { ok: false, status: resp.status, error: await resp.text() };
 }
