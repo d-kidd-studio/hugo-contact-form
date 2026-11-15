@@ -1,10 +1,10 @@
 import { createFormHandler } from "@d-kidd-studio/verified-form-mailer/form";
 import { verify } from "@d-kidd-studio/verified-form-mailer/verifiers/turnstile";
 import { sendMail } from "@d-kidd-studio/verified-form-mailer/providers/mailjet";
-import { buildContactMessage } from "../../src/contact-message.js";
+import { buildMessage } from "../_lib/message.js";
 
 export const onRequestPost = createFormHandler({
-  buildMessage: buildContactMessage,
+  buildMessage,
   sendMail,
   verify,
 
