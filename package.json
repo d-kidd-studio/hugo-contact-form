@@ -1,11 +1,17 @@
 {
-    "name": "@d-kidd-studio/verified-form-mailer",
-    "version": "0.3",
-    "description": "Functions handler that verifies a form submission (Turnstile) and emails a site-defined message through a pluggable provider (Mailjet).",
-    "type": "module",
-    "exports": {
-        "./form": "./src/handler.js",
-        "./verifiers/turnstile": "./src/verifiers/turnstile.js",
-        "./providers/mailjet": "./src/providers/mailjet.js"
-    }
+  "name": "@d-kidd-studio/verified-form-mailer",
+  "version": "0.3.0",
+  "description": "Cloudflare Pages form handler with pluggable verification, message building, and email delivery.",
+  "type": "module",
+  "bin": {
+    "verified-form-mailer": "./bin/cli.js"
+  },
+  "exports": {
+    "./form": "./src/handler.js",
+    "./verifiers/turnstile": "./src/verifiers/turnstile.js",
+    "./providers/mailjet": "./src/providers/mailjet.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }
