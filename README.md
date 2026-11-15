@@ -138,4 +138,4 @@ A different provider can be supplied without changing the handler, provided it f
 
 ## License
 
-No license has been added yet. Until one is chosen and committed, do not assume the repository grants broad reuse or redistribution rights.
+This project is licensed under the [MIT License](LICENSE). Copyright (c) 2026 D-Kidd Studio.
