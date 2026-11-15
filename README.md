@@ -8,7 +8,7 @@ A small, provider-pluggable JavaScript toolkit for Cloudflare Pages form endpoin
 
 The package deliberately does not define your form fields, email copy, page markup, or site-specific redirect destinations. Those belong to the site using it.
 
-> **Current status:** the repository contains the reusable handler, a Turnstile verifier, a Mailjet provider adapter, and starter files with an initialization CLI. Roberts Apartments is the first integration/use case. The package is currently ESM and is not a Hugo theme or a complete contact-form UI.
+> **Current status:** the repository contains the reusable handler, a Turnstile verifier, a Mailjet provider adapter, and starter files with an initialization CLI. The package is currently ESM and is not a Hugo theme or a complete contact-form UI.
 
 ## Package layout
 
