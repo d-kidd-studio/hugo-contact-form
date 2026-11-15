@@ -107,7 +107,7 @@ Update `successPath` and `errorPath` to destinations that exist in your site:
 
 ```js
 export const onRequestPost = createFormHandler({
-  buildMessage: buildContactMessage,
+  buildMessage,
   sendMail,
   verify,
   successPath: "/thank-you",
