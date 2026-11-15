@@ -1,4 +1,4 @@
-export function createContactHandler({
+export function createFormHandler({
   buildMessage,
   sendMail,
   verify,
