@@ -8,18 +8,21 @@ A small, provider-pluggable JavaScript toolkit for Cloudflare Pages form endpoin
 
 The package deliberately does not define your form fields, email copy, page markup, or site-specific redirect destinations. Those belong to the site using it.
 
-> **Current status:** the repository contains the reusable handler, a Turnstile verifier, and a Mailjet provider adapter. Roberts Apartments is the first integration/use case. The package is currently ESM and is not a Hugo theme or a complete contact-form UI.
+> **Current status:** the repository contains the reusable handler, a Turnstile verifier, a Mailjet provider adapter, and starter files with an initialization CLI. Roberts Apartments is the first integration/use case. The package is currently ESM and is not a Hugo theme or a complete contact-form UI.
 
 ## Package layout
 
 ```text
 src/
-  handler.js                 # createFormHandler()
-  providers/
-    mailjet.js               # Mailjet sendMail() adapter
-  verifiers/
-    turnstile.js             # Cloudflare Turnstile verify() adapter
-package.json                 # ESM package exports
+  handler.js
+  providers/mailjet.js
+  verifiers/turnstile.js
+bin/
+  cli.js
+starters/cloudflare-pages/
+  functions/api/contact.js
+  src/contact-message.js
+package.json
 ```
 
 ## Installation
@@ -30,37 +33,46 @@ Install from GitHub in the consuming site's project:
 npm install github:d-kidd-studio/verified-form-mailer
 ```
 
-For a production deployment, pin the dependency to a release tag or commit rather than tracking a moving branch. The package currently exposes these entry points:
+For production, pin the dependency to a release tag or commit rather than tracking a moving branch.
 
-| Import path | Exports |
+## Scaffold starter files
+
+After installing the package, run this from the root of the consuming project:
+
+```bash
+npm exec -- verified-form-mailer init
+```
+
+The command copies two starter files into your project:
+
+| Destination | Purpose |
+|---|---|
+| `functions/api/contact.js` | Cloudflare Pages `POST /api/contact` entry point wired to the package adapters |
+| `src/contact-message.js` | Site-specific message builder for your form fields and email content |
+
+The command will not overwrite existing files. If either destination already exists, it reports the conflict and exits without copying. Review the files before choosing to overwrite:
+
+```bash
+npm exec -- verified-form-mailer init -- --force
+```
+
+Preview the files that would be copied without changing the project:
+
+```bash
+npm exec -- verified-form-mailer init -- --dry-run
+```
+
+After scaffolding, customize `src/contact-message.js`, review the success/error paths in `functions/api/contact.js`, add the required Cloudflare environment variables, and connect your HTML form to `POST /api/contact`.
+
+See [the integration guide](docs/integration.md) for the complete setup.
+
+## Public JavaScript exports
+
+| Import path | Export |
 |---|---|
 | `@d-kidd-studio/verified-form-mailer/form` | `createFormHandler` |
 | `@d-kidd-studio/verified-form-mailer/verifiers/turnstile` | `verify` |
 | `@d-kidd-studio/verified-form-mailer/providers/mailjet` | `sendMail` |
-
-## Cloudflare Pages integration
-
-Cloudflare Pages discovers Functions from the consuming site's root `functions/` directory. Keep a small endpoint file in that location and use it to configure the package:
-
-```js
-// functions/api/contact.js
-import { createFormHandler } from "@d-kidd-studio/verified-form-mailer/form";
-import { verify } from "@d-kidd-studio/verified-form-mailer/verifiers/turnstile";
-import { sendMail } from "@d-kidd-studio/verified-form-mailer/providers/mailjet";
-import { buildContactMessage } from "../../src/contact-message.js";
-
-export const onRequestPost = createFormHandler({
-  buildMessage: buildContactMessage,
-  sendMail,
-  verify,
-  successPath: "/thank-you",
-  errorPath: "/contact?error=1",
-});
-```
-
-The relative import for `buildContactMessage` is an example; place your message builder wherever it makes sense in your site. Cloudflare bundles imports used by the Pages Function during deployment. The package does not automatically create or deploy the site's `functions/api/contact.js` entry point.
-
-See [the integration guide](docs/integration.md) for a complete walkthrough and configuration details.
 
 ## Required Cloudflare environment variables
 
@@ -81,20 +93,12 @@ Set the values in each environment that needs them (for example Preview and Prod
 Your `buildMessage(formData, { request, env })` function receives the submitted `FormData` and request context. It returns a message object:
 
 ```js
-export function buildContactMessage(formData, { request }) {
-  const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
-  const message = String(formData.get("message") ?? "").trim();
-
-  return {
-    subject: "New website inquiry",
-    text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
-    replyTo: { email, name },
-    // Optional:
-    fromName: "Website",
-    toName: "Website Contact",
-    html: "<p>Optional HTML version</p>",
-  };
+{
+  subject: "New website inquiry",
+  text: "Plain-text message body",
+  replyTo: { email: "visitor@example.com", name: "Visitor" },
+  fromName: "Website",
+  toName: "Website Contact"
 }
 ```
 
@@ -119,7 +123,7 @@ A different provider can be supplied without changing the handler, provided it f
 
 ## Documentation
 
-- [Integration guide](docs/integration.md) — install, configure, and connect a Cloudflare Pages form endpoint.
+- [Integration guide](docs/integration.md) — install, scaffold, configure, and connect a Cloudflare Pages form endpoint.
 - [Architecture and contracts](docs/architecture.md) — package responsibilities, data flow, and adapter interfaces.
 - [Design notes](docs/design.md) — project decisions and known follow-up areas.
 
