@@ -25,7 +25,7 @@ The CLI copies these files from the package:
 | Destination in your project | Purpose |
 |---|---|
 | `functions/api/contact.js` | Cloudflare Pages Function entry point |
-| `src/contact-message.js` | Site-specific message builder |
+| `functions/_lib/message.js` | Site-specific message builder |
 
 The CLI creates parent directories as needed. It checks for existing destination files before copying; if either file already exists, it stops without overwriting anything.
 
@@ -45,7 +45,7 @@ npm exec -- verified-form-mailer init -- --force
 
 ## 3. Customize the message builder
 
-Open `src/contact-message.js`. The starter expects fields named `name`, `email`, and `message`. Change these to match your form, and customize the validation, subject, body, and Reply-To behavior.
+Open `functions/_lib/message.js`. The starter expects fields named `name`, `email`, and `message`. Change these to match your form, and customize the validation, subject, body, and Reply-To behavior.
 
 The handler calls:
 
@@ -58,7 +58,7 @@ The function can be synchronous or asynchronous. It should return the normalized
 Example:
 
 ```js
-export function buildContactMessage(formData) {
+export function buildMessage(formData) {
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();
@@ -70,7 +70,7 @@ export function buildContactMessage(formData) {
   return {
     subject: "New website inquiry",
     text: [
-      "New message from the website contact form",
+      "New message from the website form",
       "",
       `Name: ${name}`,
       `Email: ${email}`,
@@ -79,7 +79,7 @@ export function buildContactMessage(formData) {
     ].join("\n"),
     replyTo: { email, name },
     fromName: "Website",
-    toName: "Website Contact",
+    toName: "Website",
   };
 }
 ```
