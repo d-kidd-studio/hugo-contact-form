@@ -21,7 +21,7 @@ bin/
   cli.js
 starters/cloudflare-pages/
   functions/api/contact.js
-  src/contact-message.js
+  functions/_lib/message.js
 package.json
 ```
 
@@ -48,7 +48,7 @@ The command copies two starter files into your project:
 | Destination | Purpose |
 |---|---|
 | `functions/api/contact.js` | Cloudflare Pages `POST /api/contact` entry point wired to the package adapters |
-| `src/contact-message.js` | Site-specific message builder for your form fields and email content |
+| `functions/_lib/message.js` | Site-specific message builder for your form fields and email content |
 
 The command will not overwrite existing files. If either destination already exists, it reports the conflict and exits without copying. Review the files before choosing to overwrite:
 
@@ -62,7 +62,7 @@ Preview the files that would be copied without changing the project:
 npm exec -- verified-form-mailer init -- --dry-run
 ```
 
-After scaffolding, customize `src/contact-message.js`, review the success/error paths in `functions/api/contact.js`, add the required Cloudflare environment variables, and connect your HTML form to `POST /api/contact`.
+After scaffolding, customize `functions/_lib/message.js`, review the success/error paths in `functions/api/contact.js`, add the required Cloudflare environment variables, and connect your HTML form to `POST /api/contact`.
 
 See [the integration guide](docs/integration.md) for the complete setup.
 
