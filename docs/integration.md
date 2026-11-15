@@ -10,46 +10,42 @@ From the consuming site's repository:
 npm install github:d-kidd-studio/verified-form-mailer
 ```
 
-Commit the generated package manifest and lockfile changes. For deployments that need reproducible dependency versions, use a release tag or pin the Git dependency to a specific commit once the project establishes a release/versioning policy.
+Commit the generated package manifest and lockfile changes. For reproducible deployments, pin the Git dependency to a release tag or commit once the project establishes a release/versioning policy.
 
-The package is an ES module. Its public imports are:
+## 2. Generate the starter files
 
-```js
-import { createFormHandler } from "@d-kidd-studio/verified-form-mailer/form";
-import { verify } from "@d-kidd-studio/verified-form-mailer/verifiers/turnstile";
-import { sendMail } from "@d-kidd-studio/verified-form-mailer/providers/mailjet";
+Run this from the root of the consuming project:
+
+```bash
+npm exec -- verified-form-mailer init
 ```
 
-## 2. Add the Cloudflare Pages Function entry point
+The CLI copies these files from the package:
 
-Create this file in the consuming site's repository:
+| Destination in your project | Purpose |
+|---|---|
+| `functions/api/contact.js` | Cloudflare Pages Function entry point |
+| `src/contact-message.js` | Site-specific message builder |
 
-```text
-functions/api/contact.js
+The CLI creates parent directories as needed. It checks for existing destination files before copying; if either file already exists, it stops without overwriting anything.
+
+To see what would be copied without changing files:
+
+```bash
+npm exec -- verified-form-mailer init -- --dry-run
 ```
 
-Example:
+To intentionally overwrite existing starter files:
 
-```js
-import { createFormHandler } from "@d-kidd-studio/verified-form-mailer/form";
-import { verify } from "@d-kidd-studio/verified-form-mailer/verifiers/turnstile";
-import { sendMail } from "@d-kidd-studio/verified-form-mailer/providers/mailjet";
-import { buildContactMessage } from "../../src/contact-message.js";
-
-export const onRequestPost = createFormHandler({
-  buildMessage: buildContactMessage,
-  sendMail,
-  verify,
-  successPath: "/thank-you",
-  errorPath: "/contact?error=1",
-});
+```bash
+npm exec -- verified-form-mailer init -- --force
 ```
 
-Adjust the message-builder import and redirect paths for your site. This entry point is deliberately small: it wires the site's message builder and chosen adapters into the shared handler.
+**Important:** `--force` replaces both destination files, including any customizations you have made. Back up or commit your changes first.
 
-Cloudflare Pages discovers Functions from the consuming site's root `functions/` directory. The package supplies reusable JavaScript modules; it does not automatically create this route file for the site.
+## 3. Customize the message builder
 
-## 3. Implement the site's message builder
+Open `src/contact-message.js`. The starter expects fields named `name`, `email`, and `message`. Change these to match your form, and customize the validation, subject, body, and Reply-To behavior.
 
 The handler calls:
 
@@ -62,7 +58,6 @@ The function can be synchronous or asynchronous. It should return the normalized
 Example:
 
 ```js
-// src/contact-message.js
 export function buildContactMessage(formData) {
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
@@ -89,8 +84,6 @@ export function buildContactMessage(formData) {
 }
 ```
 
-A thrown error from `buildMessage` is logged by the handler and results in a redirect to `errorPath`. Do not include secrets or sensitive submitted data in thrown error messages or logs.
-
 ### Message fields
 
 | Property | Required | Meaning |
@@ -104,9 +97,27 @@ A thrown error from `buildMessage` is logged by the handler and results in a red
 
 The handler obtains sender and recipient email addresses from `env.CONTACT_FROM_EMAIL` and `env.CONTACT_TO_EMAIL`. The Mailjet adapter maps this normalized object to Mailjet's v3.1 API payload.
 
-Your message builder is the right place to interpret the site's own field names and create the message content. Validate the submitted values on the server. If you create HTML email content, escape untrusted values before inserting them into HTML.
+Your message builder is the right place to interpret the site's own field names and create the message content. Validate submitted values on the server. If you create HTML email content, escape untrusted values before inserting them into HTML.
 
-## 4. Configure Cloudflare environment variables
+## 4. Review the Cloudflare Pages Function
+
+Open `functions/api/contact.js`. The starter imports the handler, Turnstile verifier, and Mailjet provider, then exports `onRequestPost`.
+
+Update `successPath` and `errorPath` to destinations that exist in your site:
+
+```js
+export const onRequestPost = createFormHandler({
+  buildMessage: buildContactMessage,
+  sendMail,
+  verify,
+  successPath: "/thank-you",
+  errorPath: "/contact?error=1",
+});
+```
+
+Cloudflare Pages discovers Functions from the consuming site's root `functions/` directory. Keep this endpoint file in that location. The package does not automatically create or deploy the route entry point.
+
+## 5. Configure Cloudflare environment variables
 
 For the included adapters and handler, set the following variables in Cloudflare Pages:
 
@@ -122,13 +133,13 @@ Configure them separately for Preview and Production as needed. Keep secrets in 
 
 The Turnstile widget's public site key belongs in the form markup. The secret key belongs only in the server environment.
 
-## 5. Add Turnstile to the form
+## 6. Add Turnstile to the form
 
 The submitted form must include the Turnstile response field named `cf-turnstile-response`. Cloudflare's widget generates this field when it is successfully completed.
 
-A typical form includes the Turnstile script and widget markup from Cloudflare's Turnstile documentation. Use the site's public site key in the widget. The package's server-side verifier reads the generated response field and checks it with Cloudflare Siteverify.
+Add the Turnstile script and widget markup to your form using the public site key for your hostname. The package's server-side verifier reads the generated response field and checks it with Cloudflare Siteverify.
 
-## 6. Understand the response behavior
+## 7. Understand the response behavior
 
 The current handler behaves as follows:
 
@@ -142,23 +153,11 @@ The current handler behaves as follows:
 
 Unexpected exceptions thrown by the verifier or provider are not currently caught by the handler. Plan for this limitation when testing and operating the integration.
 
-## 7. Redirect paths
+## 8. Test in Preview before Production
 
-Set both redirect options explicitly in the consuming site's Function:
-
-```js
-successPath: "/thank-you",
-errorPath: "/contact?error=1",
-```
-
-The package currently defaults these values to `/thank-you` and `/contact?error=1`, but the actual pages and query-string handling belong to the consuming site.
-
-Use trusted, same-origin absolute paths beginning with a single slash. Do not pass external URLs or values derived from form input. The current handler concatenates the configured path to the request origin and does not independently validate it.
-
-## 8. Local and Preview testing checklist
-
+- [ ] The package is installed and the lockfile is committed.
+- [ ] Starter files were generated and customized.
 - [ ] The Pages Function is present at `functions/api/contact.js`.
-- [ ] The package is installed and committed in the site's dependency lockfile.
 - [ ] The form submits to `/api/contact` using POST.
 - [ ] The form includes a Turnstile widget and submits `cf-turnstile-response`.
 - [ ] Preview has the Turnstile secret and Mailjet credentials configured.
