@@ -150,7 +150,7 @@ The current implementation also does not provide a generic server-side schema va
 
 Cloudflare Pages requires a root-level Function entry point in the consuming site's repository, such as `functions/api/contact.js`. That file imports the package modules and exports the configured `onRequestPost` handler.
 
-The package does not supply a Hugo layout or automatically deploy the Function entry point. A Hugo site can use any form markup it chooses, provided its form posts the expected data to the endpoint and includes the Turnstile response field when using the included verifier.
+The package includes an optional CLI scaffold that copies a Cloudflare Pages route entry point to `functions/api/contact.js` and a site-specific message builder to `functions/_lib/message.js`. The `_lib` directory keeps supporting code alongside the Pages Functions while avoiding a public route. The CLI does not overwrite existing files unless `--force` is supplied.\n\nThe package does not supply a Hugo layout or automatically deploy the Function entry point. A Hugo site can use any form markup it chooses, provided its form posts the expected data to the endpoint and includes the Turnstile response field when using the included verifier.
 
 ## Design principles
 
