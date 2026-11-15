@@ -20,7 +20,7 @@ const projectRoot = process.cwd();
 
 const files = [
   ["functions/api/contact.js", "functions/api/contact.js"],
-  ["src/contact-message.js", "src/contact-message.js"],
+  ["functions/_lib/message.js", "functions/_lib/message.js"],
 ];
 
 const existing = [];
@@ -54,4 +54,4 @@ for (const [source, destination] of files) {
   console.log(`Created ${destination}`);
 }
 
-console.log("\nStarter files copied. Edit src/contact-message.js and configure your Cloudflare Pages environment variables before deploying.");
+console.log("\nStarter files copied. Edit functions/_lib/message.js and configure your Cloudflare Pages environment variables before deploying.");
