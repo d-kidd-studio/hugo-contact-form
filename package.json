@@ -1,0 +1,17 @@
+{
+  "name": "@d-kidd-studio/verified-form-mailer",
+  "version": "1.0.0",
+  "description": "Cloudflare Pages form handler with pluggable verification, message building, and email delivery.",
+  "type": "module",
+  "bin": {
+    "verified-form-mailer": "./bin/cli.js"
+  },
+  "exports": {
+    "./form": "./src/handler.js",
+    "./verifiers/turnstile": "./src/verifiers/turnstile.js",
+    "./providers/mailjet": "./src/providers/mailjet.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

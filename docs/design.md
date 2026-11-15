@@ -1,39 +1,70 @@
-# Design notes
+# Design notes and roadmap
 
-## Version 1: faithful Roberts Apartments extraction
+## Current design
 
-The first milestone is intentionally narrow: extract the current Roberts Apartments contact form and Cloudflare Pages Function into this repository without changing behavior.
+The package separates a form endpoint into four cooperating pieces:
 
-The acceptance criteria are:
+1. **Handler** — coordinates the request lifecycle through `createFormHandler()`.
+2. **Verifier** — validates that a submission is legitimate. Cloudflare Turnstile is the included implementation.
+3. **Message builder** — supplied by the consuming site; translates that site's `FormData` into a normalized email message.
+4. **Provider** — delivers the normalized message. Mailjet is the included implementation.
 
-- The form markup and conditional student-field behavior match the existing theme template. The extracted template is installed at the consuming site's root `layouts/_default/contact.html`, so it overrides the theme's version without modifying the theme directory.
-- The endpoint remains `POST /api/contact`.
-- Turnstile verification and Mailjet delivery work the same way as the current implementation.
-- The email subject, body, sender/recipient display names, and Reply-To behavior remain unchanged.
-- Successful submissions redirect to `/thank-you`.
-- Failed Mailjet submissions redirect to `/contact?error=1`.
-- The consuming Roberts Apartments site only needs the two extracted files copied into its root `functions/` and `layouts/` directories; its content, theme styling, Cloudflare environment variables, Turnstile site key, and thank-you page remain in place.
+The consuming site owns the Cloudflare Pages route entry point, form markup, field names, message content, environment configuration, and redirect destinations.
 
-The files in this repository's `functions/api/contact.js` and `layouts/_default/contact.html` are currently byte-for-byte content matches of the corresponding files in `d-kidd-studio/robertsapt` main.
+See [Architecture and API contracts](architecture.md) for the current interfaces and [Integration guide](integration.md) for setup instructions.
 
-## Version 1 is not a redesign
+## Decisions
 
-Do not introduce a generalized form schema, new response format, new field names, or a different email template as part of the initial extraction. That would make it harder to distinguish extraction regressions from behavior changes.
+### Keep site-specific content out of the shared handler
 
-The current implementation has limitations, including minimal server-side field validation, placeholder fallback configuration, and limited Mailjet error handling. Record and address those as deliberate follow-up changes after the drop-in replacement has been tested. Preserve the current behavior for the extraction milestone rather than silently mixing those changes into it.
+The handler should not know whether a form is a property inquiry, a general contact form, or something else. The site supplies `buildMessage(formData, context)`, which owns field mapping and message construction.
 
-## Later milestone: make the integration reusable
+This keeps form-specific content out of the shared package and allows multiple sites to use the same request orchestration.
 
-After the Roberts Apartments replacement is verified, we can evolve the code to support other Hugo sites. Likely areas include:
+### Keep provider details in adapters
 
-- Site-specific fields and email formatting supplied through configuration.
-- Explicit required configuration rather than placeholder fallbacks.
-- Stronger server-side validation and safer provider error handling.
-- Optional success/error destinations.
-- A clear installation/update mechanism for multiple Hugo + Cloudflare Pages sites.
+The handler calls a provider using a normalized message contract. Provider adapters translate that contract into the API payload and authentication scheme required by a specific email service.
 
-## Distribution consideration
+Mailjet is the first adapter because it was used by the initial Roberts Apartments integration. Other providers can be added without coupling their API details to the handler.
 
-Cloudflare Pages discovers Functions from the consuming site's root `functions/` directory. A Hugo Module can distribute Hugo templates and assets, but should not be assumed to deploy the Pages Function automatically. A root-level layout in the consuming site takes precedence over a theme-provided layout. Any future module/package approach must explicitly install or synchronize `functions/api/contact.js` into the consuming site's root.
+### Keep verification pluggable
 
-For the first milestone, a documented two-file copy into the consuming site's root directories is sufficient and keeps the integration easy to verify.
+The handler receives a `verify(formData, context)` function. Turnstile is included, but the contract allows a consuming site to supply another verification implementation.
+
+### Let the consuming site own redirect paths
+
+The handler provides fallback defaults for `successPath` and `errorPath`, but the consuming site should explicitly pass both options. The paths represent the site's own navigation and error experience, not email-delivery policy.
+
+Only trusted same-origin paths should be configured. Redirect destination validation is a known hardening item.
+
+### Keep the Cloudflare Pages entry point in the consuming site
+
+Cloudflare Pages discovers Functions from the consuming repository's root `functions/` directory. The consuming site therefore retains a small entry point that imports the package and exports the configured `onRequestPost`. The package does not automatically create or deploy this entry point.
+
+## Current implementation status
+
+The package currently exports:
+
+- `createFormHandler` from `/form`
+- `verify` from `/verifiers/turnstile`
+- `sendMail` from `/providers/mailjet`
+
+The implementation is an ES module. It is not a Hugo theme, does not provide the site's form markup, and does not currently include a published npm release workflow or automated test suite.
+
+## Follow-up work
+
+The following items are candidates for future work; they are not represented as existing package capabilities.
+
+1. **Redirect safety:** resolve configured paths against the request URL and reject external/protocol-relative destinations.
+2. **Exception handling:** normalize errors thrown by verifier and provider network calls into controlled responses and logs.
+3. **Configuration validation:** fail clearly when required sender, recipient, or provider credentials are missing.
+4. **Message validation:** define and enforce the required normalized message properties before delivery.
+5. **Input validation guidance:** document that site-specific builders must validate form fields and safely encode values in HTML email.
+6. **Testing:** add unit tests for handler success/failure branches, verifier responses, provider responses, and thrown exceptions.
+7. **Provider expansion:** add another adapter only when there is a real consumer/use case to validate the interface.
+8. **Release management:** define versioning, tags, and dependency pinning guidance for consuming sites.
+9. **Second consumer:** validate the package in a second site to confirm that the abstractions are genuinely reusable.
+
+## Scope principle
+
+Keep the shared package small. Add an abstraction when a real consumer needs it, and keep site-specific behavior in the consuming site. Documentation should describe the code that is currently shipped and clearly label planned behavior as future work.
