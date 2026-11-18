@@ -49,18 +49,18 @@ The package currently exports:
 - `verify` from `/verifiers/turnstile`
 - `sendMail` from `/providers/mailjet`
 
-The implementation is an ES module. It is not a Hugo theme, does not provide the site's form markup, and does not currently include a published npm release workflow or automated test suite.
+The implementation is an ES module. It is not a Hugo theme, does not provide the site's form markup, and does not currently include a published npm release workflow or CI workflow.
 
 ## Follow-up work
 
 The following items are candidates for future work; they are not represented as existing package capabilities.
 
 1. **Redirect safety:** resolve configured paths against the request URL and reject external/protocol-relative destinations.
-2. **Exception handling:** normalize errors thrown by verifier and provider network calls into controlled responses and logs.
+2. ~~**Exception handling:**~~ Done: the handler converts exceptions from the verifier, builder, provider and form parsing into the `errorPath` redirect and logs them.
 3. **Configuration validation:** fail clearly when required sender, recipient, or provider credentials are missing.
 4. **Message validation:** define and enforce the required normalized message properties before delivery.
 5. **Input validation guidance:** document that site-specific builders must validate form fields and safely encode values in HTML email.
-6. **Testing:** add unit tests for handler success/failure branches, verifier responses, provider responses, and thrown exceptions.
+6. ~~**Testing:**~~ Done: `npm test` covers the handler, Turnstile verifier and Mailjet adapter.
 7. **Provider expansion:** add another adapter only when there is a real consumer/use case to validate the interface.
 8. **Release management:** define versioning, tags, and dependency pinning guidance for consuming sites.
 9. **Second consumer:** validate the package in a second site to confirm that the abstractions are genuinely reusable.

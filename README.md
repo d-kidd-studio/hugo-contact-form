@@ -110,7 +110,7 @@ The message builder owns all site-specific field interpretation, validation beyo
 
 The handler accepts `successPath` and `errorPath` options. They default to `/thank-you` and `/contact?error=1`, respectively, but consuming sites should set them explicitly so navigation remains a site-level decision.
 
-Successful delivery redirects with HTTP 303 to `successPath`. A message-builder error or unsuccessful provider result redirects with HTTP 303 to `errorPath`. A failed verification currently returns its verifier-provided status/message directly rather than redirecting.
+Successful delivery redirects with HTTP 303 to `successPath`. A message-builder error, an unsuccessful provider result, an exception thrown by the provider or verifier, or a request body that can't be parsed as form data redirects with HTTP 303 to `errorPath` (and is logged with `console.error`). A verifier that *returns* a failure (for example a missing or invalid Turnstile token) is answered directly with the verifier-provided status/message rather than a redirect.
 
 ## Responsibilities and extension points
 
@@ -131,10 +131,18 @@ A different provider can be supplied without changing the handler, provided it f
 
 - The package does not provide a generic form template or front-end form validation.
 - The site is responsible for validating required fields and constructing safe email content.
-- The handler currently expects the provider to return a result; unexpected exceptions thrown by a provider are not converted into the configured error redirect.
 - Redirect paths are concatenated to the request origin; supply trusted same-site path values beginning with `/`, not external URLs.
 - Only Mailjet and Cloudflare Turnstile adapters are included today.
-- The package has no automated test suite or published npm release configured in the current repository.
+- No published npm release is configured yet; install from a GitHub tag or commit.
+- The handler does not yet validate that `subject`/`text` are present or that the required environment variables are set; missing values surface as a provider error and an `errorPath` redirect.
+
+## Development
+
+```bash
+npm test
+```
+
+Tests use Node's built-in test runner (no dependencies) and cover the handler's success and failure branches plus the Turnstile and Mailjet adapters, with `fetch` mocked.
 
 ## License
 
