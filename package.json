@@ -1,6 +1,6 @@
 {
   "name": "@d-kidd-studio/verified-form-mailer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Cloudflare Pages form handler with pluggable verification, message building, and email delivery.",
   "type": "module",
   "bin": {
