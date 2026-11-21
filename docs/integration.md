@@ -7,7 +7,7 @@ This guide shows how to connect a site's HTML form to the reusable handler in `@
 From the consuming site's repository:
 
 ```bash
-npm install github:d-kidd-studio/verified-form-mailer
+npm install @d-kidd-studio/verified-form-mailer
 ```
 
 Commit the generated package manifest and lockfile changes. For reproducible deployments, pin the Git dependency to a release tag or commit once the project establishes a release/versioning policy.
@@ -22,10 +22,10 @@ npm exec -- verified-form-mailer init
 
 The CLI copies these files from the package:
 
-| Destination in your project | Purpose |
-|---|---|
-| `functions/api/contact.js` | Cloudflare Pages Function entry point |
-| `functions/_lib/message.js` | Site-specific message builder |
+| Destination in your project | Purpose                               |
+| --------------------------- | ------------------------------------- |
+| `functions/api/contact.js`  | Cloudflare Pages Function entry point |
+| `functions/_lib/message.js` | Site-specific message builder         |
 
 The CLI creates parent directories as needed. It checks for existing destination files before copying; if either file already exists, it stops without overwriting anything.
 
@@ -50,7 +50,7 @@ Open `functions/_lib/message.js`. The starter expects fields named `name`, `emai
 The handler calls:
 
 ```js
-buildMessage(formData, { request, env })
+buildMessage(formData, { request, env });
 ```
 
 The function can be synchronous or asynchronous. It should return the normalized message shape expected by the provider adapter.
@@ -86,14 +86,14 @@ export function buildMessage(formData) {
 
 ### Message fields
 
-| Property | Required | Meaning |
-|---|---:|---|
-| `subject` | Yes | Email subject |
-| `text` | Yes | Plain-text message body |
-| `html` | No | Optional HTML message body |
-| `replyTo` | No | Optional `{ email, name }` reply-to identity |
-| `fromName` | No | Sender display name; defaults to `Website` |
-| `toName` | No | Recipient display name; defaults to `Website Contact` |
+| Property   | Required | Meaning                                               |
+| ---------- | -------: | ----------------------------------------------------- |
+| `subject`  |      Yes | Email subject                                         |
+| `text`     |      Yes | Plain-text message body                               |
+| `html`     |       No | Optional HTML message body                            |
+| `replyTo`  |       No | Optional `{ email, name }` reply-to identity          |
+| `fromName` |       No | Sender display name; defaults to `Website`            |
+| `toName`   |       No | Recipient display name; defaults to `Website Contact` |
 
 The handler obtains sender and recipient email addresses from `env.CONTACT_FROM_EMAIL` and `env.CONTACT_TO_EMAIL`. The Mailjet adapter maps this normalized object to Mailjet's v3.1 API payload.
 
@@ -121,13 +121,13 @@ Cloudflare Pages discovers Functions from the consuming site's root `functions/`
 
 For the included adapters and handler, set the following variables in Cloudflare Pages:
 
-| Variable | Purpose |
-|---|---|
+| Variable               | Purpose                      |
+| ---------------------- | ---------------------------- |
 | `TURNSTILE_SECRET_KEY` | Server-side Turnstile secret |
-| `MAILJET_API_KEY` | Mailjet API key |
-| `MAILJET_API_SECRET` | Mailjet API secret |
-| `CONTACT_FROM_EMAIL` | Email sender address |
-| `CONTACT_TO_EMAIL` | Email recipient address |
+| `MAILJET_API_KEY`      | Mailjet API key              |
+| `MAILJET_API_SECRET`   | Mailjet API secret           |
+| `CONTACT_FROM_EMAIL`   | Email sender address         |
+| `CONTACT_TO_EMAIL`     | Email recipient address      |
 
 Configure them separately for Preview and Production as needed. Keep secrets in Cloudflare's environment settings, never in committed source or public Hugo configuration.
 
@@ -143,13 +143,13 @@ Add the Turnstile script and widget markup to your form using the public site ke
 
 The current handler behaves as follows:
 
-| Stage | Result |
-|---|---|
-| Turnstile verifier returns `{ ok: true }` | Continue to message creation |
-| Verifier returns `{ ok: false, status, message }` | Return that status and message directly |
-| Message builder throws | Log the error and redirect to `errorPath` with HTTP 303 |
-| Provider returns `{ ok: true }` | Redirect to `successPath` with HTTP 303 |
-| Provider returns `{ ok: false, ... }` | Log the provider result and redirect to `errorPath` with HTTP 303 |
+| Stage                                             | Result                                                            |
+| ------------------------------------------------- | ----------------------------------------------------------------- |
+| Turnstile verifier returns `{ ok: true }`         | Continue to message creation                                      |
+| Verifier returns `{ ok: false, status, message }` | Return that status and message directly                           |
+| Message builder throws                            | Log the error and redirect to `errorPath` with HTTP 303           |
+| Provider returns `{ ok: true }`                   | Redirect to `successPath` with HTTP 303                           |
+| Provider returns `{ ok: false, ... }`             | Log the provider result and redirect to `errorPath` with HTTP 303 |
 
 Unexpected exceptions thrown by the verifier or provider are not currently caught by the handler. Plan for this limitation when testing and operating the integration.
 

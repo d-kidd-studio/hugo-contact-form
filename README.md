@@ -32,7 +32,7 @@ package.json
 Install from GitHub in the consuming site's project:
 
 ```bash
-npm install github:d-kidd-studio/verified-form-mailer
+npm install @d-kidd-studio/verified-form-mailer
 ```
 
 For production, pin the dependency to a release tag or commit rather than tracking a moving branch.
