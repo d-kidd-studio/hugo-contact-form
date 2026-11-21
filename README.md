@@ -1,5 +1,7 @@
 # Verified Form Mailer
 
+[![Test](https://github.com/d-kidd-studio/verified-form-mailer/actions/workflows/test.yml/badge.svg)](https://github.com/d-kidd-studio/verified-form-mailer/actions/workflows/test.yml)
+
 A small, provider-pluggable JavaScript toolkit for Cloudflare Pages form endpoints. It coordinates three responsibilities:
 
 1. Verify a submitted form (Cloudflare Turnstile by default).
@@ -45,10 +47,10 @@ npm exec -- verified-form-mailer init
 
 The command copies two starter files into your project:
 
-| Destination | Purpose |
-|---|---|
-| `functions/api/contact.js` | Cloudflare Pages `POST /api/contact` entry point wired to the package adapters |
-| `functions/_lib/message.js` | Site-specific message builder for your form fields and email content |
+| Destination                 | Purpose                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| `functions/api/contact.js`  | Cloudflare Pages `POST /api/contact` entry point wired to the package adapters |
+| `functions/_lib/message.js` | Site-specific message builder for your form fields and email content           |
 
 The command will not overwrite existing files. If either destination already exists, it reports the conflict and exits without copying. Review the files before choosing to overwrite:
 
@@ -68,23 +70,23 @@ See [the integration guide](docs/integration.md) for the complete setup.
 
 ## Public JavaScript exports
 
-| Import path | Export |
-|---|---|
-| `@d-kidd-studio/verified-form-mailer/form` | `createFormHandler` |
-| `@d-kidd-studio/verified-form-mailer/verifiers/turnstile` | `verify` |
-| `@d-kidd-studio/verified-form-mailer/providers/mailjet` | `sendMail` |
+| Import path                                               | Export              |
+| --------------------------------------------------------- | ------------------- |
+| `@d-kidd-studio/verified-form-mailer/form`                | `createFormHandler` |
+| `@d-kidd-studio/verified-form-mailer/verifiers/turnstile` | `verify`            |
+| `@d-kidd-studio/verified-form-mailer/providers/mailjet`   | `sendMail`          |
 
 ## Required Cloudflare environment variables
 
 For the included Turnstile verifier and Mailjet adapter, configure these as Cloudflare Pages environment variables/secrets:
 
-| Variable | Used by | Purpose |
-|---|---|---|
+| Variable               | Used by            | Purpose                                                |
+| ---------------------- | ------------------ | ------------------------------------------------------ |
 | `TURNSTILE_SECRET_KEY` | Turnstile verifier | Secret key used for server-side Turnstile verification |
-| `MAILJET_API_KEY` | Mailjet adapter | Mailjet API key |
-| `MAILJET_API_SECRET` | Mailjet adapter | Mailjet API secret |
-| `CONTACT_FROM_EMAIL` | Handler | Sender email address |
-| `CONTACT_TO_EMAIL` | Handler | Recipient email address |
+| `MAILJET_API_KEY`      | Mailjet adapter    | Mailjet API key                                        |
+| `MAILJET_API_SECRET`   | Mailjet adapter    | Mailjet API secret                                     |
+| `CONTACT_FROM_EMAIL`   | Handler            | Sender email address                                   |
+| `CONTACT_TO_EMAIL`     | Handler            | Recipient email address                                |
 
 Set the values in each environment that needs them (for example Preview and Production). Do not commit secrets or expose them in Hugo's public site configuration. The Turnstile **site key** is public and belongs in the form markup; the **secret key** belongs only in the Cloudflare environment.
 
@@ -110,7 +112,7 @@ The message builder owns all site-specific field interpretation, validation beyo
 
 The handler accepts `successPath` and `errorPath` options. They default to `/thank-you` and `/contact?error=1`, respectively, but consuming sites should set them explicitly so navigation remains a site-level decision.
 
-Successful delivery redirects with HTTP 303 to `successPath`. A message-builder error, an unsuccessful provider result, an exception thrown by the provider or verifier, or a request body that can't be parsed as form data redirects with HTTP 303 to `errorPath` (and is logged with `console.error`). A verifier that *returns* a failure (for example a missing or invalid Turnstile token) is answered directly with the verifier-provided status/message rather than a redirect.
+Successful delivery redirects with HTTP 303 to `successPath`. A message-builder error, an unsuccessful provider result, an exception thrown by the provider or verifier, or a request body that can't be parsed as form data redirects with HTTP 303 to `errorPath` (and is logged with `console.error`). A verifier that _returns_ a failure (for example a missing or invalid Turnstile token) is answered directly with the verifier-provided status/message rather than a redirect.
 
 ## Responsibilities and extension points
 
