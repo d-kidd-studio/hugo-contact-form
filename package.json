@@ -2,6 +2,26 @@
   "name": "@d-kidd-studio/verified-form-mailer",
   "version": "1.0.2",
   "description": "Cloudflare Pages form handler with pluggable verification, message building, and email delivery.",
+  "license": "MIT",
+  "keywords": [
+    "cloudflare-pages",
+    "cloudflare-pages-functions",
+    "contact-form",
+    "form-handler",
+    "turnstile",
+    "mailjet",
+    "hugo",
+    "static-site",
+    "email"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/d-kidd-studio/verified-form-mailer.git"
+  },
+  "homepage": "https://github.com/d-kidd-studio/verified-form-mailer#readme",
+  "bugs": {
+    "url": "https://github.com/d-kidd-studio/verified-form-mailer/issues"
+  },
   "type": "module",
   "bin": {
     "verified-form-mailer": "./bin/cli.js"
@@ -16,5 +36,15 @@
   },
   "scripts": {
     "test": "node --test"
+  },
+  "files": [
+    "src",
+    "bin",
+    "starters",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
   }
 }
